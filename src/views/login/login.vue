@@ -2,7 +2,14 @@
   <div class="loginPage">
     <div class="loginBox">
       <div class="text">{{ isLogin ? "登录" : "注册" }}</div>
-      <div class="logo"><img :src="logo" alt=""></div>
+      <div class="logo">
+        <img
+          style="cursor: pointer"
+          @click="$router.push({ path: '/home' })"
+          :src="logo"
+          alt=""
+        />
+      </div>
       <div class="formBox">
         <Form
           class="loginForm"
@@ -79,12 +86,23 @@ export default {
     };
     return {
       logo: require("@/assets/logo.png"),
-      isLogin: false,
+      isLogin: true,
       loginForm: {},
       registerRules: {
         password2: [{ required: true, validator: pw2Rule, trigger: "blur" }],
       },
     };
+  },
+  watch: {
+    $route: {
+      handler() {
+        this.isLogin = this.$route.query.isLogin;
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    this.isLogin = this.$route.query.isLogin;
   },
   methods: {
     handleLogin() {
@@ -135,14 +153,12 @@ export default {
 <style lang="less">
 .loginPage {
   width: 100%;
-  height: calc( 100vh - 60px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: calc(100vh - 100px);
   margin: 0 auto;
   border-radius: 10px 10px 0 0;
   .loginBox {
     width: 500px;
+    margin: 50px auto 0;
     border-radius: 10px 10px 0 0;
     border: 1px solid rgba(0, 0, 0, 0.15);
     .text {
@@ -153,8 +169,8 @@ export default {
       font-weight: 600;
       background-color: skyblue;
     }
-    .logo{
-      img{
+    .logo {
+      img {
         width: 160px;
         height: autol;
       }

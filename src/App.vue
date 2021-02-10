@@ -24,7 +24,7 @@
             style="margin-right: 10px"
             >登录</span
           >
-          <span class="loginBtn" @click="toLogin(true)">注册</span>
+          <span class="loginBtn" @click="toLogin(false)">注册</span>
         </i-col>
       </Row>
     </div>
@@ -41,7 +41,7 @@ export default {
   },
   methods: {
     toLogin(bool) {
-      this.$router.push({ path:'/login'})
+      this.$router.push({ name: "login", query: { isLogin: bool } });
     },
   },
 };
@@ -94,6 +94,9 @@ export default {
         border-right: 1px solid #e5e5e5;
       }
       .userInfo {
+        .ivu-dropdown-item {
+          color: #999;
+        }
       }
     }
     span {
