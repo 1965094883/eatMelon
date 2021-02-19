@@ -36,6 +36,7 @@
           <FormItem
             prop="password"
             key="password"
+            @on-enter="enterLogin()"
             :rules="{ required: true, message: '请输入密码', trigger: 'blur' }"
             ><Input
               type="password"
@@ -70,6 +71,7 @@
 
 <script>
 import { getRequest, postRequest } from "@/libs/request.js";
+import { mapMutations } from "vuex";
 
 export default {
   name: "login",
@@ -103,8 +105,18 @@ export default {
   },
   mounted() {
     this.isLogin = this.$route.query.isLogin;
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
   },
   methods: {
+    ...mapMutations(["getUserInfo"]),
+    //登录时回车监听
+    enterLogin() {
+      if (this.isLogin) {
+        this.handleLogin();
+      }
+    },
+    //登录注册按钮
     handleLogin() {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
@@ -115,7 +127,6 @@ export default {
             password2: this.loginForm.password2 || null,
             gender: 0,
           };
-          console.log(params);
           if (!this.isLogin) {
             postRequest("/addUser", params).then((res) => {
               if (res && res.data.code === 0) {
@@ -127,23 +138,41 @@ export default {
             });
           } else {
             postRequest("/login", params).then((res) => {
-              if (res && res.code === 0) {
+              if (res && res.data.code === 0) {
                 this.$Message.success("登录成功!跳转中...");
-                //设置token
+                //缓存token
+                localStorage.setItem("token", res.data.data.token);
+                localStorage.setItem("userId", res.data.data.userId);
+                //用户信息存到vuex
+                //通过用户id获取用户信息
+                let userId = res.data.data.userId;
+                getRequest("/getUserInfo", {
+                  // Authentication: res.data.data.token,
+                  userId: userId,
+                }).then((res) => {
+                  if (res && res.data.code === 0) {
+                    this.getUserInfo(res.data.data);
+                    console.log(this.$store.state.userInfo);
+                  }
+                });
                 //跳转到home页
+                this.$router.push({ path: "home" });
+              } else if (res && res.data.code === 1000) {
+                this.$Message.error("密码错误!");
+                this.loginForm.password = "";
               }
             });
           }
         }
       });
     },
+    //切换注册登录
     changeLoginType() {
       this.$refs.loginForm.resetFields();
       this.loginForm = {
         account: "",
         password: "",
       };
-      // console.log(this.loginForm);
       this.isLogin = !this.isLogin;
     },
   },
