@@ -18,20 +18,32 @@
               <DropdownItem>收藏的跑腿服务</DropdownItem>
             </DropdownMenu>
           </Dropdown>
-          <span
-            class="loginBtn"
-            @click="toLogin(true)"
-            style="margin-right: 10px"
-            >登录</span
-          >
-          <span class="loginBtn" @click="toLogin(false)">注册</span>
+          <span v-if="!userInfo">
+            <span
+              class="loginBtn"
+              @click="toLogin(true)"
+              style="margin-right: 10px"
+              >登录</span
+            >
+            <span class="loginBtn" @click="toLogin(false)">注册</span>
+          </span>
+          <span v-else>
+            <span class="nickName" style="margin-right: 15px">{{
+              userInfo.nick_name
+            }}</span>
+            <span @click="logout()">注销</span>
+          </span>
         </i-col>
       </Row>
     </div>
     <router-view />
   </div>
 </template>
+
 <script>
+import { getRequest, postRequest } from "@/libs/request.js";
+import { mapMutations } from "vuex";
+
 export default {
   name: "app",
   data() {
@@ -39,7 +51,37 @@ export default {
       logo: require("@/assets/logo.png"),
     };
   },
+  mounted() {
+    let userId = localStorage.getItem("userId");
+    if (userId) {
+      getRequest("/getUserInfo", {
+        userId: userId,
+      }).then((res) => {
+        if (res && res.data.code === 0) {
+          this.getUserInfo(res.data.data);
+        }
+      });
+    } else {
+    }
+  },
+  computed: {
+    userInfo() {
+      let userId = localStorage.getItem("userId");
+      if (this.$store.state.userInfo) {
+        return this.$store.state.userInfo;
+      } else {
+        return "";
+      }
+    },
+  },
   methods: {
+    ...mapMutations(["getUserInfo"]),
+    logout() {
+      console.log(1);
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      this.getUserInfo();
+    },
     toLogin(bool) {
       this.$router.push({ name: "login", query: { isLogin: bool } });
     },
